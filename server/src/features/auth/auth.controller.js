@@ -37,7 +37,7 @@ export const loginController = asyncHandler(async (req, res) => {
 });
 
 export const logoutController = asyncHandler(async (req, res) => {
-  res.clearCookie('accessToken', { httpOnly: true, sameSite: 'lax' });
+  res.clearCookie('accessToken', cookieOptions);
   return sendSuccess(res, { message: 'Logged out successfully' });
 });
 
