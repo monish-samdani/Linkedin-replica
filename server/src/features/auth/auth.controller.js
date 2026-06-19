@@ -15,6 +15,9 @@ import {
   updateSkills,
   uploadProfilePhoto,
   uploadBannerPhoto,
+  requestPasswordReset,
+  resetPassword,
+  validateResetToken,
 } from './auth.service.js';
 
 const cookieOptions = {
@@ -39,6 +42,23 @@ export const loginController = asyncHandler(async (req, res) => {
 export const logoutController = asyncHandler(async (req, res) => {
   res.clearCookie('accessToken', cookieOptions);
   return sendSuccess(res, { message: 'Logged out successfully' });
+});
+
+export const forgotPasswordController = asyncHandler(async (req, res) => {
+  await requestPasswordReset(req.body.email);
+  return sendSuccess(res, {
+    message: "If an account with that email exists, you'll receive a reset link shortly.",
+  });
+});
+
+export const resetPasswordController = asyncHandler(async (req, res) => {
+  await resetPassword(req.params.token, req.body.password);
+  return sendSuccess(res, { message: 'Password reset successful. Please sign in.' });
+});
+
+export const validateResetTokenController = asyncHandler(async (req, res) => {
+  const result = await validateResetToken(req.params.token);
+  return sendSuccess(res, { message: 'Reset token validation', data: result });
 });
 
 export const getMeController = asyncHandler(async (req, res) => {

@@ -7,6 +7,8 @@ import FeedPage from '../pages/FeedPage';
 import NetworkPage from '../pages/NetworkPage';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
+import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../features/auth/ResetPasswordPage';
 import JobsPage from '../features/jobs/JobsPage';
 import MessagingPage from '../features/messaging/MessagingPage';
 import NotificationsPage from '../features/notifications/NotificationsPage';
@@ -29,6 +31,8 @@ export default function AppRouter() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
+      <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+      <Route path="/reset-password/:token" element={<PublicOnlyRoute><ResetPasswordPage /></PublicOnlyRoute>} />
       <Route path="/feed" element={<PrivateRoute><FeedPage /></PrivateRoute>} />
       <Route path="/mynetwork" element={<PrivateRoute><NetworkPage /></PrivateRoute>} />
       <Route path="/jobs" element={<PrivateRoute><JobsPage /></PrivateRoute>} />

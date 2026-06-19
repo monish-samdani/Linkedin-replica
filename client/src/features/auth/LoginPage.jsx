@@ -74,9 +74,9 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-4 text-center">
-          <a href="#" className="text-sm text-brand-500 hover:underline">
+          <Link to="/forgot-password" className="text-sm text-brand-500 hover:underline">
             Forgot password?
-          </a>
+          </Link>
         </div>
 
         <div className="my-6 flex items-center gap-4">

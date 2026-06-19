@@ -8,6 +8,9 @@ import {
   registerController,
   loginController,
   logoutController,
+  forgotPasswordController,
+  resetPasswordController,
+  validateResetTokenController,
   getMeController,
   updateProfileController,
   addExperienceController,
@@ -37,9 +40,18 @@ const loginValidation = [
   body('password').notEmpty(),
 ];
 
+const forgotPasswordValidation = [body('email').isEmail().normalizeEmail()];
+
+const resetPasswordValidation = [
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+];
+
 router.post('/register', authLimiter, registerValidation, validate, registerController);
 router.post('/login', authLimiter, loginValidation, validate, loginController);
 router.post('/logout', protect, logoutController);
+router.post('/forgot-password', authLimiter, forgotPasswordValidation, validate, forgotPasswordController);
+router.post('/reset-password/:token', authLimiter, resetPasswordValidation, validate, resetPasswordController);
+router.get('/reset-password/:token/validate', validateResetTokenController);
 router.get('/me', protect, getMeController);
 router.put('/me', protect, updateProfileController);
 router.post('/me/experience', protect, addExperienceController);
