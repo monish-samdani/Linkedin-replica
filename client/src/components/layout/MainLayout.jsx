@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
@@ -19,7 +20,10 @@ function LogoMark({ className = '' }) {
 
 export default function MainLayout({ children }) {
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const initials = user?.name
     ?.split(' ')
@@ -27,6 +31,23 @@ export default function MainLayout({ children }) {
     .join('')
     .slice(0, 2)
     .toUpperCase() || '?';
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
+  const handleSignOut = async () => {
+    setMenuOpen(false);
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-surface-1">
@@ -63,21 +84,50 @@ export default function MainLayout({ children }) {
               );
             })}
 
-            <Link
-              to="/in/me"
-              className={`ml-1 flex flex-col items-center px-2 py-1 text-xs sm:px-3 ${
-                location.pathname.startsWith('/in/') ? 'text-brand-500' : 'text-gray-600'
-              }`}
-            >
-              {user?.profilePhoto ? (
-                <img src={user.profilePhoto} alt="" className="avatar h-6 w-6" />
-              ) : (
-                <div className="avatar flex h-6 w-6 items-center justify-center bg-brand-500 text-[10px] font-bold text-white">
-                  {initials}
+            <div className="relative ml-1" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                className={`flex flex-col items-center px-2 py-1 text-xs sm:px-3 ${
+                  location.pathname.startsWith('/in/') ? 'text-brand-500' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {user?.profilePhoto ? (
+                  <img src={user.profilePhoto} alt="" className="avatar h-6 w-6" />
+                ) : (
+                  <div className="avatar flex h-6 w-6 items-center justify-center bg-brand-500 text-[10px] font-bold text-white">
+                    {initials}
+                  </div>
+                )}
+                <span className="hidden sm:inline">Me ▾</span>
+              </button>
+
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="card absolute right-0 top-full mt-2 w-44 overflow-hidden py-1 text-sm"
+                >
+                  <Link
+                    to="/in/me"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2 text-gray-700 transition hover:bg-gray-100"
+                  >
+                    View Profile
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleSignOut}
+                    className="block w-full px-4 py-2 text-left font-medium text-red-600 transition hover:bg-gray-100"
+                  >
+                    Sign Out
+                  </button>
                 </div>
               )}
-              <span className="hidden sm:inline">Me</span>
-            </Link>
+            </div>
           </nav>
         </div>
       </header>

@@ -12,6 +12,14 @@ export const ENDPOINTS = {
     BANNER_PHOTO: '/auth/me/photo/banner',
   },
   USERS: {
+    ALL: '/users',
     BY_ID: (id) => `/users/${id}`,
+  },
+  CONNECTIONS: {
+    BASE: '/connections',
+    REQUEST: (userId) => `/connections/request/${userId}`,
+    ACCEPT: (connectionId) => `/connections/accept/${connectionId}`,
+    REJECT: (connectionId) => `/connections/reject/${connectionId}`,
+    WITHDRAW: (connectionId) => `/connections/withdraw/${connectionId}`,
   },
 };
