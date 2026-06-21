@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axiosInstance';
+import { ENDPOINTS } from '../../api/endpoints';
 
 const navItems = [
   { to: '/feed', icon: '🏠', label: 'Home', hideOnXs: false },
@@ -10,10 +12,123 @@ const navItems = [
   { to: '/notifications', icon: '🔔', label: 'Notifications', hideOnXs: false },
 ];
 
+function getInitials(name) {
+  return (
+    name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '?'
+  );
+}
+
 function LogoMark({ className = '' }) {
   return (
     <div className={`flex h-9 w-9 items-center justify-center rounded bg-brand-500 text-sm font-bold text-white ${className}`}>
       in
+    </div>
+  );
+}
+
+function SearchBar() {
+  const navigate = useNavigate();
+  const containerRef = useRef(null);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const term = query.trim();
+    if (!term) {
+      setResults([]);
+      setLoading(false);
+      return undefined;
+    }
+
+    setLoading(true);
+    const handle = setTimeout(async () => {
+      try {
+        const { data } = await api.get(ENDPOINTS.USERS.SEARCH_USERS, { params: { q: term } });
+        setResults(data.data.users || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(handle);
+  }, [query]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  const handleSelect = (userId) => {
+    setQuery('');
+    setResults([]);
+    setOpen(false);
+    navigate(`/in/${userId}`);
+  };
+
+  const showDropdown = open && query.trim().length > 0;
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <input
+        type="search"
+        placeholder="Search"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        className="w-full rounded-full bg-gray-100 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500/30"
+      />
+
+      {showDropdown && (
+        <div className="card absolute left-0 top-full mt-2 max-h-96 w-full overflow-y-auto py-1">
+          {loading ? (
+            <div className="flex items-center justify-center gap-2 px-4 py-4 text-sm text-gray-500">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-brand-500" />
+              Searching...
+            </div>
+          ) : results.length === 0 ? (
+            <p className="px-4 py-4 text-sm text-gray-500">No user found with that name or email.</p>
+          ) : (
+            results.map((u) => (
+              <button
+                key={u._id}
+                type="button"
+                onClick={() => handleSelect(u._id)}
+                className="flex w-full items-center gap-3 px-4 py-2 text-left transition hover:bg-gray-100"
+              >
+                {u.profilePhoto ? (
+                  <img src={u.profilePhoto} alt="" className="avatar h-9 w-9" />
+                ) : (
+                  <div className="avatar flex h-9 w-9 items-center justify-center bg-brand-500 text-xs font-bold text-white">
+                    {getInitials(u.name)}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-900">{u.name}</p>
+                  {u.headline && <p className="truncate text-xs text-gray-500">{u.headline}</p>}
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -25,12 +140,7 @@ export default function MainLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  const initials = user?.name
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || '?';
+  const initials = getInitials(user?.name);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -58,12 +168,7 @@ export default function MainLayout({ children }) {
           </Link>
 
           <div className="mx-4 hidden max-w-md flex-1 md:block">
-            <input
-              type="search"
-              placeholder="Search"
-              className="w-full rounded-full bg-gray-100 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500/30"
-              readOnly
-            />
+            <SearchBar />
           </div>
 
           <nav className="flex items-center gap-1 sm:gap-2">

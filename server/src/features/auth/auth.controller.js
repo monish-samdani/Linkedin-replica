@@ -45,7 +45,13 @@ export const logoutController = asyncHandler(async (req, res) => {
 });
 
 export const forgotPasswordController = asyncHandler(async (req, res) => {
-  await requestPasswordReset(req.body.email);
+  // TEMPORARY DEBUG LOGGING — remove once the forgot-password flow is confirmed working.
+  try {
+    await requestPasswordReset(req.body.email);
+  } catch (err) {
+    console.error('[forgot-password] failed:', err);
+    throw err;
+  }
   return sendSuccess(res, {
     message: "If an account with that email exists, you'll receive a reset link shortly.",
   });
