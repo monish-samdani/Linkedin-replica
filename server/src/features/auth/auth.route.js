@@ -13,6 +13,7 @@ import {
   validateResetTokenController,
   getMeController,
   updateProfileController,
+  deleteAccountController,
   addExperienceController,
   updateExperienceController,
   deleteExperienceController,
@@ -54,6 +55,7 @@ router.post('/reset-password/:token', authLimiter, resetPasswordValidation, vali
 router.get('/reset-password/:token/validate', validateResetTokenController);
 router.get('/me', protect, getMeController);
 router.put('/me', protect, updateProfileController);
+router.delete('/me', protect, deleteAccountController);
 router.post('/me/experience', protect, addExperienceController);
 router.put('/me/experience/:id', protect, updateExperienceController);
 router.delete('/me/experience/:id', protect, deleteExperienceController);

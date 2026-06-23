@@ -8,6 +8,7 @@ export const ENDPOINTS = {
     VALIDATE_RESET_TOKEN: (token) => `/auth/reset-password/${token}/validate`,
     ME: '/auth/me',
     UPDATE_PROFILE: '/auth/me',
+    DELETE_ACCOUNT: '/auth/me',
     EXPERIENCE: '/auth/me/experience',
     EDUCATION: '/auth/me/education',
     SKILLS: '/auth/me/skills',

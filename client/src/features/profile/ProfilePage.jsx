@@ -159,6 +159,8 @@ export default function ProfilePage() {
               </div>
               <h1 className="mt-3 font-display text-2xl font-bold">{user.name}</h1>
               {user.headline && <p className="mt-1 text-gray-600">{user.headline}</p>}
+              {user.currentPosition && <p className="mt-1 text-sm text-gray-700">💼 {user.currentPosition}</p>}
+              {user.bio && <p className="mt-2 text-sm text-gray-600">{user.bio}</p>}
               <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
                 {user.location && <span>📍 {user.location}</span>}
                 {user.website && (

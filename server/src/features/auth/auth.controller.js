@@ -6,6 +6,7 @@ import {
   loginUser,
   getCurrentUser,
   updateProfile,
+  deleteAccount,
   addExperience,
   updateExperience,
   deleteExperience,
@@ -75,6 +76,12 @@ export const getMeController = asyncHandler(async (req, res) => {
 export const updateProfileController = asyncHandler(async (req, res) => {
   const user = await updateProfile(req.user._id, req.body);
   return sendSuccess(res, { message: 'Profile updated', data: { user } });
+});
+
+export const deleteAccountController = asyncHandler(async (req, res) => {
+  await deleteAccount(req.user._id);
+  res.clearCookie('accessToken', cookieOptions);
+  return sendSuccess(res, { message: 'Account deleted successfully' });
 });
 
 export const addExperienceController = asyncHandler(async (req, res) => {

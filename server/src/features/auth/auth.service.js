@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import User from './auth.model.js';
+import Connection from '../connections/connections.model.js';
+import Notification from '../notifications/notifications.model.js';
 import AppError from '../../utils/AppError.js';
 import { uploadToCloudinary } from '../../config/cloudinary.js';
 import { sendEmail } from '../../config/mailer.js';
@@ -39,7 +41,17 @@ export const getCurrentUser = async (userId) => {
   return user.toPublicJSON();
 };
 
-const ALLOWED_PROFILE_FIELDS = ['name', 'headline', 'about', 'location', 'website', 'phone'];
+const ALLOWED_PROFILE_FIELDS = [
+  'name',
+  'headline',
+  'about',
+  'bio',
+  'currentPosition',
+  'location',
+  'website',
+  'phone',
+  'profilePhoto',
+];
 
 export const updateProfile = async (userId, updateData) => {
   const filtered = {};
@@ -47,9 +59,26 @@ export const updateProfile = async (userId, updateData) => {
     if (updateData[field] !== undefined) filtered[field] = updateData[field];
   });
 
+  if (Object.keys(filtered).length === 0) {
+    throw new AppError('No valid fields provided to update', 400);
+  }
+
   const user = await User.findByIdAndUpdate(userId, filtered, { new: true, runValidators: true });
   if (!user) throw new AppError('User not found', 404);
   return user.toPublicJSON();
+};
+
+export const deleteAccount = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError('User not found', 404);
+
+  await Promise.all([
+    User.findByIdAndDelete(userId),
+    Connection.deleteMany({ $or: [{ sender: userId }, { recipient: userId }] }),
+    Notification.deleteMany({ $or: [{ sender: userId }, { recipient: userId }] }),
+    // Remove this user from any remaining connections arrays so counts stay accurate.
+    User.updateMany({ connections: userId }, { $pull: { connections: userId } }),
+  ]);
 };
 
 export const addExperience = async (userId, expData) => {

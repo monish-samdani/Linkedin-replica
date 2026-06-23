@@ -56,6 +56,8 @@ const userSchema = new mongoose.Schema(
     },
     headline: { type: String, default: '', maxlength: 220 },
     about: { type: String, default: '', maxlength: 2600 },
+    bio: { type: String, default: '', maxlength: 500 },
+    currentPosition: { type: String, default: '' },
     location: { type: String, default: '' },
     profilePhoto: { type: String, default: '' },
     bannerPhoto: { type: String, default: '' },
