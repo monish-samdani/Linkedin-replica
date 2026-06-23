@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axiosInstance';
 import { ENDPOINTS } from '../api/endpoints';
+import * as connectionsApi from '../api/connections';
 import MainLayout from '../components/layout/MainLayout';
 import { useAuth } from '../context/AuthContext';
 import { useConnections } from '../features/connections/hooks/useConnections';
 import ConnectButton from '../features/connections/components/ConnectButton';
-import ConnectionRequests from '../features/connections/components/ConnectionRequests';
 
 function getInitials(name) {
   return name
@@ -30,19 +30,35 @@ function Avatar({ user, size = 'md' }) {
   );
 }
 
+function MutualCount({ userId }) {
+  const [count, setCount] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const { mutual } = await connectionsApi.getMutual(userId);
+        if (active) setCount(mutual?.length || 0);
+      } catch {
+        if (active) setCount(0);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+
+  if (!count) return null;
+  return (
+    <p className="mt-1 text-xs text-gray-500">
+      {count} mutual connection{count > 1 ? 's' : ''}
+    </p>
+  );
+}
+
 export default function NetworkPage() {
   const { user: authUser } = useAuth();
-  const {
-    connections,
-    sentRequests,
-    receivedRequests,
-    loading,
-    handleSend,
-    handleAccept,
-    handleReject,
-    handleWithdraw,
-  } = useConnections();
-  const handlers = { handleSend, handleAccept, handleReject, handleWithdraw };
+  const { connections, pendingRequests, loading, refetch } = useConnections();
 
   const [allUsers, setAllUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -66,25 +82,14 @@ export default function NetworkPage() {
 
   const authId = authUser?._id;
 
-  const deriveStatus = (userId) => {
-    const received = receivedRequests.find((r) => r.sender?._id === userId);
-    if (received) return { status: 'pending_received', connectionId: received._id };
-
-    const sent = sentRequests.find((r) => r.recipient?._id === userId);
-    if (sent) return { status: 'pending_sent', connectionId: sent._id };
-
-    const connected = connections.find((c) => {
-      const otherId = c.sender?._id === authId ? c.recipient?._id : c.sender?._id;
-      return otherId === userId;
-    });
-    if (connected) return { status: 'connected', connectionId: connected._id };
-
-    return { status: 'none', connectionId: null };
-  };
-
-  const suggestions = allUsers.filter(
-    (u) => u._id !== authId && deriveStatus(u._id).status === 'none'
+  const connectedIds = new Set(
+    connections.map((c) => (c.sender?._id === authId ? c.recipient?._id : c.sender?._id))
   );
+  const incomingSenderIds = new Set(pendingRequests.map((r) => r.sender?._id));
+
+  const suggestions = allUsers
+    .filter((u) => u._id !== authId && !connectedIds.has(u._id) && !incomingSenderIds.has(u._id))
+    .slice(0, 12);
 
   const acceptedUsers = connections.map((c) => {
     const other = c.sender?._id === authId ? c.recipient : c.sender;
@@ -95,25 +100,51 @@ export default function NetworkPage() {
     <MainLayout>
       <div className="grid gap-4 py-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          {/* Invitations */}
+          {/* Pending requests */}
           <section className="card">
             <div className="border-b border-gray-200 px-4 py-3">
               <h2 className="font-display text-lg font-semibold text-gray-900">
-                Invitations {receivedRequests.length > 0 && `(${receivedRequests.length})`}
+                Pending requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}
               </h2>
             </div>
             {loading ? (
               <p className="px-4 py-6 text-sm text-gray-500">Loading invitations…</p>
+            ) : pendingRequests.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-gray-500">No pending invitations.</p>
             ) : (
-              <ConnectionRequests
-                requests={receivedRequests}
-                onAccept={handleAccept}
-                onReject={handleReject}
-              />
+              <ul className="divide-y divide-gray-100">
+                {pendingRequests.map((req) => (
+                  <li key={req._id} className="flex items-center gap-3 px-4 py-3">
+                    <Link to={`/in/${req.sender?._id}`} className="shrink-0">
+                      <Avatar user={req.sender} />
+                    </Link>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        to={`/in/${req.sender?._id}`}
+                        className="block truncate font-semibold text-gray-900 hover:text-brand-500 hover:underline"
+                      >
+                        {req.sender?.name}
+                      </Link>
+                      {req.sender?.headline && (
+                        <p className="truncate text-xs text-gray-500">{req.sender.headline}</p>
+                      )}
+                      <MutualCount userId={req.sender?._id} />
+                    </div>
+                    <div className="shrink-0">
+                      <ConnectButton
+                        userId={req.sender?._id}
+                        initialStatus="pending_received"
+                        connectionId={req._id}
+                        onChange={refetch}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 
-          {/* People You May Know */}
+          {/* People you may know */}
           <section className="card">
             <div className="border-b border-gray-200 px-4 py-3">
               <h2 className="font-display text-lg font-semibold text-gray-900">People you may know</h2>
@@ -141,13 +172,9 @@ export default function NetworkPage() {
                     {u.headline && (
                       <p className="mt-1 line-clamp-2 text-xs text-gray-500">{u.headline}</p>
                     )}
+                    <MutualCount userId={u._id} />
                     <div className="mt-3">
-                      <ConnectButton
-                        targetUserId={u._id}
-                        connectionStatus="none"
-                        connectionId={null}
-                        handlers={handlers}
-                      />
+                      <ConnectButton userId={u._id} initialStatus="none" connectionId={null} />
                     </div>
                   </div>
                 ))}
@@ -156,7 +183,7 @@ export default function NetworkPage() {
           </section>
         </div>
 
-        {/* Your Connections */}
+        {/* Your connections */}
         <aside className="space-y-4">
           <section className="card">
             <div className="border-b border-gray-200 px-4 py-3">

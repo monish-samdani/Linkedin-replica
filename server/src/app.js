@@ -5,6 +5,8 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRouter from './features/auth/auth.route.js';
 import usersRouter from './features/users/users.route.js';
+import connectionsRouter from './features/connections/connections.route.js';
+import notificationsRouter from './features/notifications/notifications.route.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -27,6 +29,8 @@ app.get('/api/v1/health', (_req, res) => {
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/connections', connectionsRouter);
+app.use('/api/v1/notifications', notificationsRouter);
 
 app.use(errorHandler);
 

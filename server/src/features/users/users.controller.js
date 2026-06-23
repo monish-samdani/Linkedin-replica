@@ -1,9 +1,14 @@
 import asyncHandler from '../../utils/asyncHandler.js';
 import { sendSuccess } from '../../utils/apiResponse.js';
-import { getUserById, searchUsers } from './users.service.js';
+import { getUserById, getAllUsers, searchUsers } from './users.service.js';
+
+export const getAllUsersController = asyncHandler(async (req, res) => {
+  const users = await getAllUsers(req.user._id);
+  return sendSuccess(res, { message: 'Users fetched', data: { users } });
+});
 
 export const searchUsersController = asyncHandler(async (req, res) => {
-  const users = await searchUsers(req.query.q);
+  const users = await searchUsers(req.query.q, req.user._id);
   return sendSuccess(res, { message: 'Users fetched', data: { users } });
 });
 

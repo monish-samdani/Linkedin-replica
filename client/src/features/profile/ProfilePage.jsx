@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import * as connectionsApi from '../../api/connections';
 import MainLayout from '../../components/layout/MainLayout';
 import InProgressCard from '../../components/shared/InProgressCard';
 import { useAuth } from '../../context/AuthContext';
 import { useProfile } from './hooks/useProfile';
+import ConnectButton from '../connections/components/ConnectButton';
 import EditProfileModal from './components/EditProfileModal';
 import EditExperienceModal from './components/EditExperienceModal';
 import EditEducationModal from './components/EditEducationModal';
@@ -56,6 +58,26 @@ export default function ProfilePage() {
   const [showAllSkills, setShowAllSkills] = useState(false);
   const [skillsModal, setSkillsModal] = useState(false);
   const [skillInput, setSkillInput] = useState('');
+  const [connState, setConnState] = useState({ status: 'none', connectionId: null });
+  const [mutual, setMutual] = useState([]);
+
+  const loadConnInfo = useCallback(async () => {
+    if (isOwnProfile || !userId || userId === 'me') return;
+    try {
+      const [state, mutualRes] = await Promise.all([
+        connectionsApi.getStatus(userId),
+        connectionsApi.getMutual(userId),
+      ]);
+      setConnState(state);
+      setMutual(mutualRes.mutual || []);
+    } catch {
+      // Non-critical: leave defaults if status/mutual can't be loaded.
+    }
+  }, [isOwnProfile, userId]);
+
+  useEffect(() => {
+    loadConnInfo();
+  }, [loadConnInfo]);
 
   const handleDeleteExperience = async (id) => {
     if (!confirm('Delete this experience?')) return;
@@ -146,6 +168,11 @@ export default function ProfilePage() {
                 )}
               </div>
               <p className="mt-2 text-sm text-brand-500">{user.connections?.length || 0} connections</p>
+              {!isOwnProfile && mutual.length > 0 && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {mutual.length} mutual connection{mutual.length > 1 ? 's' : ''}
+                </p>
+              )}
               <div className="mt-4 flex gap-2">
                 {isOwnProfile ? (
                   <>
@@ -154,7 +181,13 @@ export default function ProfilePage() {
                   </>
                 ) : (
                   <>
-                    <button className="btn-primary text-sm">Connect</button>
+                    <ConnectButton
+                      key={`${connState.status}:${connState.connectionId}`}
+                      userId={userId}
+                      initialStatus={connState.status}
+                      connectionId={connState.connectionId}
+                      onChange={loadConnInfo}
+                    />
                     <button className="btn-secondary text-sm">Message</button>
                   </>
                 )}

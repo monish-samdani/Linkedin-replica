@@ -3,6 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import * as notificationsApi from '../../api/notifications';
+import ConnectButton from '../../features/connections/components/ConnectButton';
+
+const UNREAD_POLL_MS = 30000;
 
 const navItems = [
   { to: '/feed', icon: '🏠', label: 'Home', hideOnXs: false },
@@ -107,24 +111,35 @@ function SearchBar() {
             <p className="px-4 py-4 text-sm text-gray-500">No user found with that name or email.</p>
           ) : (
             results.map((u) => (
-              <button
+              <div
                 key={u._id}
-                type="button"
-                onClick={() => handleSelect(u._id)}
-                className="flex w-full items-center gap-3 px-4 py-2 text-left transition hover:bg-gray-100"
+                className="flex w-full items-center gap-3 px-4 py-2 transition hover:bg-gray-100"
               >
-                {u.profilePhoto ? (
-                  <img src={u.profilePhoto} alt="" className="avatar h-9 w-9" />
-                ) : (
-                  <div className="avatar flex h-9 w-9 items-center justify-center bg-brand-500 text-xs font-bold text-white">
-                    {getInitials(u.name)}
+                <button
+                  type="button"
+                  onClick={() => handleSelect(u._id)}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                >
+                  {u.profilePhoto ? (
+                    <img src={u.profilePhoto} alt="" className="avatar h-9 w-9" />
+                  ) : (
+                    <div className="avatar flex h-9 w-9 items-center justify-center bg-brand-500 text-xs font-bold text-white">
+                      {getInitials(u.name)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-gray-900">{u.name}</p>
+                    {u.headline && <p className="truncate text-xs text-gray-500">{u.headline}</p>}
                   </div>
-                )}
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900">{u.name}</p>
-                  {u.headline && <p className="truncate text-xs text-gray-500">{u.headline}</p>}
+                </button>
+                <div className="shrink-0">
+                  <ConnectButton
+                    userId={u._id}
+                    initialStatus={u.connectionStatus || 'none'}
+                    connectionId={u.connectionId || null}
+                  />
                 </div>
-              </button>
+              </div>
             ))
           )}
         </div>
@@ -138,9 +153,31 @@ export default function MainLayout({ children }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef(null);
 
   const initials = getInitials(user?.name);
+
+  useEffect(() => {
+    if (!user) return undefined;
+
+    let active = true;
+    const fetchUnread = async () => {
+      try {
+        const { notifications } = await notificationsApi.getNotifications();
+        if (active) setUnreadCount((notifications || []).filter((n) => !n.read).length);
+      } catch {
+        // Silently ignore polling errors.
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, UNREAD_POLL_MS);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [user, location.pathname]);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -182,7 +219,14 @@ export default function MainLayout({ children }) {
                     item.hideOnXs ? 'hidden sm:flex' : 'flex'
                   } ${isActive ? 'text-brand-500' : 'text-gray-600 hover:text-gray-900'}`}
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <span className="relative text-lg">
+                    {item.icon}
+                    {item.to === '/notifications' && unreadCount > 0 && (
+                      <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </span>
                   <span className="hidden sm:inline">{item.label}</span>
                   {isActive && <span className="mt-0.5 hidden h-0.5 w-full rounded bg-brand-500 sm:block" />}
                 </Link>

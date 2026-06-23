@@ -20,10 +20,18 @@ export const ENDPOINTS = {
     BY_ID: (id) => `/users/${id}`,
   },
   CONNECTIONS: {
-    BASE: '/connections',
-    REQUEST: (userId) => `/connections/request/${userId}`,
-    ACCEPT: (connectionId) => `/connections/accept/${connectionId}`,
-    REJECT: (connectionId) => `/connections/reject/${connectionId}`,
-    WITHDRAW: (connectionId) => `/connections/withdraw/${connectionId}`,
+    REQUEST: (recipientId) => `/connections/request/${recipientId}`,
+    ACCEPT: (requestId) => `/connections/accept/${requestId}`,
+    REJECT: (requestId) => `/connections/reject/${requestId}`,
+    REMOVE: (connectionId) => `/connections/${connectionId}`,
+    STATUS: (otherUserId) => `/connections/status/${otherUserId}`,
+    MY: '/connections/my',
+    REQUESTS: '/connections/requests',
+    MUTUAL: (otherUserId) => `/connections/mutual/${otherUserId}`,
+  },
+  NOTIFICATIONS: {
+    BASE: '/notifications',
+    READ_ALL: '/notifications/read-all',
+    READ_ONE: (id) => `/notifications/${id}/read`,
   },
 };
