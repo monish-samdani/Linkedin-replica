@@ -10,7 +10,8 @@ import RegisterPage from '../features/auth/RegisterPage';
 import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../features/auth/ResetPasswordPage';
 import JobsPage from '../features/jobs/JobsPage';
-import MessagingPage from '../features/messaging/MessagingPage';
+import MessagesPage from '../features/messages/MessagesPage';
+import BlockedUsersPage from '../features/messages/BlockedUsersPage';
 import NotificationsPage from '../features/notifications/NotificationsPage';
 import ProfilePage from '../features/profile/ProfilePage';
 import ProfileSetupPage from '../features/profile/ProfileSetupPage';
@@ -36,7 +37,8 @@ export default function AppRouter() {
       <Route path="/feed" element={<PrivateRoute><FeedPage /></PrivateRoute>} />
       <Route path="/mynetwork" element={<PrivateRoute><NetworkPage /></PrivateRoute>} />
       <Route path="/jobs" element={<PrivateRoute><JobsPage /></PrivateRoute>} />
-      <Route path="/messaging" element={<PrivateRoute><MessagingPage /></PrivateRoute>} />
+      <Route path="/messages/blocked" element={<PrivateRoute><BlockedUsersPage /></PrivateRoute>} />
+      <Route path="/messages" element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
       <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
       <Route path="/profile/setup" element={<PrivateRoute><ProfileSetupPage /></PrivateRoute>} />
       <Route path="/in/:userId" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />

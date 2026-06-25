@@ -5,6 +5,7 @@ import {
   registerUser,
   loginUser,
   getCurrentUser,
+  issueSocketToken,
   updateProfile,
   deleteAccount,
   addExperience,
@@ -71,6 +72,11 @@ export const validateResetTokenController = asyncHandler(async (req, res) => {
 export const getMeController = asyncHandler(async (req, res) => {
   const user = await getCurrentUser(req.user._id);
   return sendSuccess(res, { message: 'User fetched', data: { user } });
+});
+
+export const getSocketTokenController = asyncHandler(async (req, res) => {
+  const token = issueSocketToken(req.user._id);
+  return sendSuccess(res, { message: 'Socket token issued', data: { token } });
 });
 
 export const updateProfileController = asyncHandler(async (req, res) => {

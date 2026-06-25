@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
 import * as notificationsApi from '../../api/notifications';
+import * as messagesApi from '../../api/messages';
 import ConnectButton from '../../features/connections/components/ConnectButton';
 
 const UNREAD_POLL_MS = 30000;
@@ -12,7 +13,7 @@ const navItems = [
   { to: '/feed', icon: '🏠', label: 'Home', hideOnXs: false },
   { to: '/mynetwork', icon: '👥', label: 'My Network', hideOnXs: false },
   { to: '/jobs', icon: '💼', label: 'Jobs', hideOnXs: false },
-  { to: '/messaging', icon: '💬', label: 'Messaging', hideOnXs: true },
+  { to: '/messages', icon: '💬', label: 'Messages', hideOnXs: true },
   { to: '/notifications', icon: '🔔', label: 'Notifications', hideOnXs: false },
 ];
 
@@ -154,6 +155,7 @@ export default function MainLayout({ children }) {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [messagesUnread, setMessagesUnread] = useState(0);
   const menuRef = useRef(null);
 
   const initials = getInitials(user?.name);
@@ -164,8 +166,13 @@ export default function MainLayout({ children }) {
     let active = true;
     const fetchUnread = async () => {
       try {
-        const { notifications } = await notificationsApi.getNotifications();
-        if (active) setUnreadCount((notifications || []).filter((n) => !n.read).length);
+        const [{ notifications }, { conversations }] = await Promise.all([
+          notificationsApi.getNotifications(),
+          messagesApi.getConversations(),
+        ]);
+        if (!active) return;
+        setUnreadCount((notifications || []).filter((n) => !n.read).length);
+        setMessagesUnread((conversations || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0));
       } catch {
         // Silently ignore polling errors.
       }
@@ -211,6 +218,8 @@ export default function MainLayout({ children }) {
           <nav className="flex items-center gap-1 sm:gap-2">
             {navItems.map((item) => {
               const isActive = location.pathname.startsWith(item.to);
+              const badge =
+                item.to === '/notifications' ? unreadCount : item.to === '/messages' ? messagesUnread : 0;
               return (
                 <Link
                   key={item.to}
@@ -221,9 +230,9 @@ export default function MainLayout({ children }) {
                 >
                   <span className="relative text-lg">
                     {item.icon}
-                    {item.to === '/notifications' && unreadCount > 0 && (
+                    {badge > 0 && (
                       <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
-                        {unreadCount > 99 ? '99+' : unreadCount}
+                        {badge > 99 ? '99+' : badge}
                       </span>
                     )}
                   </span>

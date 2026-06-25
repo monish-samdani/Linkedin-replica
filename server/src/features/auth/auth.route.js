@@ -12,6 +12,7 @@ import {
   resetPasswordController,
   validateResetTokenController,
   getMeController,
+  getSocketTokenController,
   updateProfileController,
   deleteAccountController,
   addExperienceController,
@@ -54,6 +55,7 @@ router.post('/forgot-password', authLimiter, forgotPasswordValidation, validate,
 router.post('/reset-password/:token', authLimiter, resetPasswordValidation, validate, resetPasswordController);
 router.get('/reset-password/:token/validate', validateResetTokenController);
 router.get('/me', protect, getMeController);
+router.get('/token', protect, getSocketTokenController);
 router.put('/me', protect, updateProfileController);
 router.delete('/me', protect, deleteAccountController);
 router.post('/me/experience', protect, addExperienceController);

@@ -41,6 +41,11 @@ export const getCurrentUser = async (userId) => {
   return user.toPublicJSON();
 };
 
+// Short-lived JWT used solely for the Socket.io handshake (cookies aren't reliably
+// sent on the WS handshake). Signed with the same secret the protect middleware verifies.
+export const issueSocketToken = (userId) =>
+  jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1m' });
+
 const ALLOWED_PROFILE_FIELDS = [
   'name',
   'headline',
