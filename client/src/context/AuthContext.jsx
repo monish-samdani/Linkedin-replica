@@ -9,15 +9,22 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch a short-lived socket token, open the realtime connection, then discard the token.
-  const setupSocket = useCallback(async () => {
+  // Resolve a fresh short-lived socket token. Passed to connectSocket as a provider so
+  // socket.io can re-fetch on every (re)connection — tokens expire after 1 minute, so a
+  // cached one would break reconnection after long network drops.
+  const getSocketToken = useCallback(async () => {
     try {
       const { data } = await api.get(ENDPOINTS.AUTH.TOKEN);
-      connectSocket(data.data.token);
+      return data.data.token;
     } catch {
       // Realtime is additive — failure here just falls back to polling.
+      return null;
     }
   }, []);
+
+  const setupSocket = useCallback(() => {
+    connectSocket(getSocketToken);
+  }, [getSocketToken]);
 
   const fetchMe = useCallback(async () => {
     try {
