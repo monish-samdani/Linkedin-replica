@@ -8,6 +8,7 @@ import usersRouter from './features/users/users.route.js';
 import connectionsRouter from './features/connections/connections.route.js';
 import notificationsRouter from './features/notifications/notifications.route.js';
 import messagesRouter from './features/messages/messages.route.js';
+import jobsRouter from './features/jobs/jobs.route.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/connections', connectionsRouter);
 app.use('/api/v1/notifications', notificationsRouter);
 app.use('/api/v1/messages', messagesRouter);
+app.use('/api/v1/jobs', jobsRouter);
 
 app.use(errorHandler);
 

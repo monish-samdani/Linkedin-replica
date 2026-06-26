@@ -15,12 +15,21 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['connection_request', 'connection_accepted'],
+      enum: [
+        'connection_request',
+        'connection_accepted',
+        'job_application',
+        'application_status',
+      ],
       required: true,
     },
     connectionId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Connection',
+    },
+    jobId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Job',
     },
     read: {
       type: Boolean,

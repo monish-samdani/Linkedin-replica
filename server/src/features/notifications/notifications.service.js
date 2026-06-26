@@ -1,7 +1,7 @@
 import Notification from './notifications.model.js';
 import AppError from '../../utils/AppError.js';
 
-export const createNotification = async (recipientId, senderId, type, connectionId) => {
+export const createNotification = async (recipientId, senderId, type, connectionId = null, jobId = null) => {
   // Never notify a user about their own action.
   if (String(recipientId) === String(senderId)) return null;
 
@@ -10,6 +10,7 @@ export const createNotification = async (recipientId, senderId, type, connection
     sender: senderId,
     type,
     connectionId,
+    jobId,
   });
 };
 

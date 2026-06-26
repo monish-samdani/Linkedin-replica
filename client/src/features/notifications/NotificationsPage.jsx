@@ -28,6 +28,8 @@ function getMessage(notification) {
   const name = notification.sender?.name || 'Someone';
   if (notification.type === 'connection_request') return `${name} sent you a connection request`;
   if (notification.type === 'connection_accepted') return `${name} accepted your connection request`;
+  if (notification.type === 'job_application') return `${name} applied to your job posting`;
+  if (notification.type === 'application_status') return `${name} updated your job application status`;
   return name;
 }
 
@@ -68,7 +70,9 @@ export default function NotificationsPage() {
         // Navigation should still proceed even if marking fails.
       }
     }
-    if (notification.sender?._id) navigate(`/in/${notification.sender._id}`);
+    // Job notifications deep-link to the job; everything else opens the sender's profile.
+    if (notification.jobId) navigate(`/jobs/${notification.jobId}`);
+    else if (notification.sender?._id) navigate(`/in/${notification.sender._id}`);
   };
 
   const hasUnread = notifications.some((n) => !n.read);

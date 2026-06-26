@@ -36,6 +36,18 @@ export const ENDPOINTS = {
     READ_ALL: '/notifications/read-all',
     READ_ONE: (id) => `/notifications/${id}/read`,
   },
+  JOBS: {
+    BASE: '/jobs',
+    MY_POSTS: '/jobs/my-posts',
+    SAVED: '/jobs/saved',
+    MY_APPLICATIONS: '/jobs/my-applications',
+    BY_ID: (id) => `/jobs/${id}`,
+    CLOSE: (id) => `/jobs/${id}/close`,
+    SAVE: (id) => `/jobs/${id}/save`,
+    APPLY: (id) => `/jobs/${id}/apply`,
+    APPLICANTS: (id) => `/jobs/${id}/applicants`,
+    APPLICATION_STATUS: (id, applicationId) => `/jobs/${id}/applicants/${applicationId}`,
+  },
   MESSAGES: {
     CONVERSATIONS: '/messages/conversations',
     ARCHIVED: '/messages/conversations/archived',

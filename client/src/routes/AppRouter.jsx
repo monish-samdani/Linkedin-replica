@@ -10,6 +10,11 @@ import RegisterPage from '../features/auth/RegisterPage';
 import ForgotPasswordPage from '../features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../features/auth/ResetPasswordPage';
 import JobsPage from '../features/jobs/JobsPage';
+import JobDetailPage from '../features/jobs/JobDetailPage';
+import MyApplicationsPage from '../features/jobs/MyApplicationsPage';
+import SavedJobsPage from '../features/jobs/SavedJobsPage';
+import MyJobPostsPage from '../features/jobs/MyJobPostsPage';
+import ApplicantsPage from '../features/jobs/ApplicantsPage';
 import MessagesPage from '../features/messages/MessagesPage';
 import BlockedUsersPage from '../features/messages/BlockedUsersPage';
 import NotificationsPage from '../features/notifications/NotificationsPage';
@@ -37,6 +42,12 @@ export default function AppRouter() {
       <Route path="/feed" element={<PrivateRoute><FeedPage /></PrivateRoute>} />
       <Route path="/mynetwork" element={<PrivateRoute><NetworkPage /></PrivateRoute>} />
       <Route path="/jobs" element={<PrivateRoute><JobsPage /></PrivateRoute>} />
+      {/* Static routes must precede the "/jobs/:id" param route so they are not swallowed. */}
+      <Route path="/jobs/my-applications" element={<PrivateRoute><MyApplicationsPage /></PrivateRoute>} />
+      <Route path="/jobs/saved" element={<PrivateRoute><SavedJobsPage /></PrivateRoute>} />
+      <Route path="/jobs/my-posts" element={<PrivateRoute><MyJobPostsPage /></PrivateRoute>} />
+      <Route path="/jobs/:id/applicants" element={<PrivateRoute><ApplicantsPage /></PrivateRoute>} />
+      <Route path="/jobs/:id" element={<PrivateRoute><JobDetailPage /></PrivateRoute>} />
       <Route path="/messages/blocked" element={<PrivateRoute><BlockedUsersPage /></PrivateRoute>} />
       <Route path="/messages" element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
       <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
